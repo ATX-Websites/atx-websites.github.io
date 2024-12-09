@@ -3,9 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATX Websites</title>
-    <link rel="stylesheet" href="styles.css"> 
+    <title>Forming Rectangle</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.155.0/three.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
 </head>
 <body>
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const thinRectangles = [];
+        const numRectangles = 3;
+        const initialPositions = [
+            { x: 0, y: 2, z: 0 }, 
+            { x: 0, y: 0, z: 0 },  
+            { x: 0, y: -2, z: 0 }  
+        ];
+        const spacing = 0.5;
+
+        for (let i = 0; i < numRectangles; i++) {
+            const geometry = new THREE.PlaneGeometry(5, 5);
+            const material = new THREE.MeshBasicMaterial({
+                color: Math.random() * 0xffffff,
+                side: THREE.DoubleSide 
+            });
+            const plane = new THREE.Mesh(geometry, material);
+
+            plane.position.y = -10;
+            plane.position.x = 0;
+            plane.position.z = 0;
+
+            plane.rotation.x = -Math.PI / 2.3; 
+
+            scene.add(plane);
+            thinRectangles.push(plane);
+        }
+
+        camera.position.z = 10;
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        let preAnimating = true;
+        let forming = false;
+        let timer = 0;
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (preAnimating) {
+                timer += 0.01;
+                thinRectangles.forEach((rect, index) => {
+                    const targetPosition = initialPositions[index];
+                    rect.position.x += (targetPosition.x - rect.position.x) * 0.05;
+                    rect.position.y += (targetPosition.y - rect.position.y) * 0.05;
+                    rect.position.z += (targetPosition.z - rect.position.z) * 0.05;
+                });
+
+                if (timer > 2) { 
+                    preAnimating = false;
+                    timer = 0;
+                    forming = true;
+                }
+            }
+
+            if (forming) {
+                timer += 0.01;
+
+                const targetRotation = Math.PI / 4;
+                const currentRotation = (targetRotation * timer) / 2;
+
+                thinRectangles.forEach((rect) => {
+                    rect.position.y += (0 - rect.position.y) * 0.02;
+                    rect.rotation.z = currentRotation;
+                });
+
+                if (timer > 2) {
+                    forming = false;
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
 </body>
 </html>
